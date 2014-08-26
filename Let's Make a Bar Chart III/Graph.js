@@ -44,12 +44,6 @@ chart.append("g")
       .attr("y", function(d) { return y(d.frequency); })
       .attr("height", function(d) { return height - y(d.frequency); })
       .attr("width", x.rangeBand());
-
-  bar.append("text")
-      .attr("x", x.rangeBand() / 2)
-      .attr("y", function(d) { return y(d.frequency) + 3; })
-      .attr("dy", ".75em")
-      .text(function(d) { return d.frequency; });
 }
 
 function convertToNumber(d) {
