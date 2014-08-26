@@ -1,37 +1,58 @@
-var width = 800;
-var height = 600;
+var margin = {top: 20, right: 30, bottom: 30, left: 40};
+var width = 960 - margin.right - margin.left;
+var height = 500 - margin.top - margin.bottom;
 
 var y = d3.scale.linear()
     .range([height, 0]);
+    
+var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width], 0.1);
+    
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+    
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
 
 var chart = d3.select(".chart")
-    .attr("width", width)
-    .attr("height", height);
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     
 d3.tsv("data.tsv", convertToNumber, processData);
-
 function processData(error, data) {
-  y.domain([0, d3.max(data, function(d) { return d.value; })]);
-  var barWidth = width / data.length;
-
-  var bar = chart.selectAll("g")
+  x.domain(data.map(function(d) { return d.letter; }));
+  y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
+  
+chart.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+    
+  chart.append("g")
+      .attr("class", "y axis")
+      .call(yAxis);
+    
+  chart.selectAll(".bar")
       .data(data)
-    .enter().append("g")
-      .attr("transform", function(d, i) { return "translate(0," + i * barWidth + ")"; });
-
-  bar.append("rect")
-      .attr("width", barWidth)
-      .attr("y", 0)
-      .attr("height", function(d) { return y(d.value); });
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return x(d.letter); })
+      .attr("y", function(d) { return y(d.frequency); })
+      .attr("height", function(d) { return height - y(d.frequency); })
+      .attr("width", x.rangeBand());
 
   bar.append("text")
-      .attr("x", barWidth)
-      .attr("y", function(d) { return y(d.value) - 3; })
-      .attr("dy", ".35em")
-      .text(function(d) { return d.value; });
+      .attr("x", x.rangeBand() / 2)
+      .attr("y", function(d) { return y(d.frequency) + 3; })
+      .attr("dy", ".75em")
+      .text(function(d) { return d.frequency; });
 }
 
 function convertToNumber(d) {
-  d.value = +d.value; // coerce to number
+  d.frequency = +d.frequency; // coerce to number
   return d;
 }
